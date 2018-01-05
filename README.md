@@ -27,19 +27,24 @@ The only hardware used in this project were:
 ### Map selection
 
 [Maze selection screen]()
+
 Use the joystick to select a maze and press the bottom button to start:
 
 ### Maze game
 
 [Maze game screen]()
+
 Use the joystick to run through the maze and reach the exit
 
 ### Victory screen
 
 [Victory screen]()
+
 Click the bottom button to dismiss and go back to the maze selection screen.
 
 
 ## Feedback?
+
+
 
 I appreciate feedback of any kind. Just give a message or post in issues. Thanks!
