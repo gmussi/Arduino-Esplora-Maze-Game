@@ -1,64 +1,59 @@
 /**********************************************************************************
- * =======================================
- *    TODOS
- *    
- *    create splash screen
- *    replace X and Y by ROW and COL
- *    use UP and DOWN on the maze selection screen
- *    put a "maze selection" title on the maze selection page
- *    upload .zip to github and paste link here
- *    create github and arduino project hub page
- *    
- *  
- *  =====================================
- *  
- * This is a Maze Game I developed as a learning project for the Arduino
- * platform. This code is developed specifically for the Arduino Esplora with LCD,
- * but could be easily adapted to any other Arduino, by replacing the calls to the
- * "Esplora" and "EsploraTFT" libraries.
- * The maze are stored and loaded from an SD card and consist of a 961 char sequence 
- * of 'f' (wall) and 't' (path) which form a 31x31 maze.. When the player selects a 
- * map and reaches its end, a victory screen is shown with the time taken by the player 
- * to complete the map.
- * 
- * Author: Guilherme Mussi <https://github.com/gmussi>
- * 
- * Github Project Page: https://github.com/gmussi/Arduino-Esplora-Maze-Game
- * Arduino Project Hub: 
- * 
- ********************************************************************************** 
- * 
- * INSTRUCTIONS
- * 
- * To run the game, you will need the following:
- * 
- * Arduino Esplora - https://store.arduino.cc/arduino-esplora
- * Arduino LCD Screen - https://store.arduino.cc/arduino-lcd-screen
- * SD Card with maps downloaded - 
- * 
- * The first step is to unzip the maps.zip file in the root folder of the SD card.
- * Once the Sketch is uploaded to Arduino Esplora, you will be prompted with a maze
- * selection screen, where you can choose one of the available maps to play.
- * After the map is selected, simply use the Joystick to reach the end of the map as
- * fast as possible, and see your score at the end.
- * 
- ********************************************************************************** 
- * 
- * MAZE GENERATION AND NEXT STEPS
- * 
- * The mazes were generated in Java using a simple recursive algorithm. 
- * It would probably be interesting to generate the maps in the game, to generate a kind
- * of "endless maze" feel. Another plus would be not needing the SD card and maze 
- * selection screen.
- * Other ideas:
- * 1. Store on SD card best time for each map
- * 2. Block a map until previous map has been completed
- * 3. Start maze selection screen on first uncompleted map
- * 4. Show a HIGH SCORE screen
- * 
- ********************************************************************************** 
- */
- 
+   =======================================
+      TODOS
+
+      replace X and Y by ROW and COL
+      upload .zip to github and paste link here
+      create github and arduino project hub page
+    =====================================
+
+   This is a Maze Game I developed as a learning project for the Arduino
+   platform. This code is developed specifically for the Arduino Esplora with LCD,
+   but could be easily adapted to any other Arduino, by replacing the calls to the
+   "Esplora" and "EsploraTFT" libraries.
+   The maze are stored and loaded from an SD card and consist of a 961 char sequence
+   of 'f' (wall) and 't' (path) which form a 31x31 maze.. When the player selects a
+   map and reaches its end, a victory screen is shown with the time taken by the player
+   to complete the map.
+
+   Author: Guilherme Mussi <https://github.com/gmussi>
+
+   Github Project Page: https://github.com/gmussi/Arduino-Esplora-Maze-Game
+   Arduino Project Hub:
+
+ **********************************************************************************
+
+   INSTRUCTIONS
+
+   To run the game, you will need the following:
+
+   Arduino Esplora - https://store.arduino.cc/arduino-esplora
+   Arduino LCD Screen - https://store.arduino.cc/arduino-lcd-screen
+   SD Card with maps downloaded -
+
+   The first step is to unzip the maps.zip file in the root folder of the SD card.
+   Once the Sketch is uploaded to Arduino Esplora, you will be prompted with a maze
+   selection screen, where you can choose one of the available maps to play.
+   After the map is selected, simply use the Joystick to reach the end of the map as
+   fast as possible, and see your score at the end.
+
+ **********************************************************************************
+
+   MAZE GENERATION AND NEXT STEPS
+
+   The mazes were generated in Java using a simple recursive algorithm.
+   It would probably be interesting to generate the maps in the game, to generate a kind
+   of "endless maze" feel. Another plus would be not needing the SD card and maze
+   selection screen.
+   Other ideas:
+   1. Store on SD card best time for each map
+   2. Block a map until previous map has been completed
+   3. Start maze selection screen on first uncompleted map
+   4. Show a HIGH SCORE screen
+
+ **********************************************************************************
+*/
+
 #include <Esplora.h>
 #include <SPI.h>
 #include <SD.h>
@@ -67,7 +62,7 @@
 #define SD_CS    8  // Chip select line for SD card in Esplora
 
 /***********************************
- * Constants used in the game
+   Constants used in the game
  **********************************/
 
 const int PLAYER_MOVE_DELAY = 100; // delay to wait after every move, so that player don't move too fast
@@ -79,16 +74,16 @@ const byte SCREEN_MAZE = 2; // main screen of the game: maze
 const byte SCREEN_VICTORY = 3; // when the user successfully finishes a maze
 
 /***********************************
- * Variables storing information
- * for the whole application
+   Variables storing information
+   for the whole application
  **********************************/
 
 int mazeCount; // number of mazes found in SD card
 byte screen; // stores the current screen
 
 /***********************************
- * Variables used during maze
- * selection screen
+   Variables used during maze
+   selection screen
  **********************************/
 
 byte page = 0; // current page being displayed
@@ -97,8 +92,8 @@ byte selectedRow = 0; // remember the row of the selected maze
 byte selectedCol = 0; // remember the column of the selected maze
 
 /***********************************
- * Variables storing the state
- * of the current maze game
+   Variables storing the state
+   of the current maze game
  **********************************/
 char maze[961]; // stores the entire maze
 byte entryX; // stores the coordinate X of the maze entry
@@ -120,31 +115,33 @@ void setup() {
   if (!SD.begin(SD_CS)) {
     while (1);
   }
-  
+
   // check how many maze files there are
   countMazes();
-
+  
   // display select maze screen
   displaySelectionPage();
 }
 
 /**
- * Loads a maze from the SD card.
- * 
- * Each maze file must consist of a 961 character 
- * sequence of 't's (path) and 'f's (wall).
- * 
- * The maze files should be named as follows:
- * /mazerun/maze-0.txt
- * /mazerun/maze-1.txt
- * ...
- * 
- * There is no imit on the amount of mazes. 
- */
+   Loads a maze from the SD card.
+
+   Each maze file must consist of a 961 character
+   sequence of 't's (path) and 'f's (wall).
+
+   The maze files should be named as follows:
+   /mazerun/maze-0.txt
+   /mazerun/maze-1.txt
+   ...
+
+   There is no imit on the amount of mazes.
+*/
 void loadMaze(byte num) {
   // open maze file from SD card
   String filename = "mazerun/maze-" + String(num);
-  File mazeFile = SD.open(filename + ".txt");
+  filename += ".txt";
+
+  File mazeFile = SD.open(filename);
 
   // place the maze in memory
   int i = 0;
@@ -157,13 +154,13 @@ void loadMaze(byte num) {
 }
 
 /**
- * Draws the maze on the screen.
- * The first 't' path found on the edge of the maze is
- * marked as the entry of the maze. The second 't' is the exit.
- */
+   Draws the maze on the screen.
+   The first 't' path found on the edge of the maze is
+   marked as the entry of the maze. The second 't' is the exit.
+*/
 void renderMaze() {
   boolean entryFound = false;
-  
+
   for (int i = 0; i < 31; i++) {
     for (int j = 0; j < 31; j++) {
       if (maze[(i * 31) + j] == PATH) {
@@ -191,8 +188,8 @@ void renderMaze() {
 }
 
 /**
- * Render the player on the specific coordinates
- */
+   Render the player on the specific coordinates
+*/
 void renderPlayer(byte x, byte y) {
   EsploraTFT.stroke(255, 0, 0);
   EsploraTFT.fill(255, 0, 0);
@@ -200,8 +197,8 @@ void renderPlayer(byte x, byte y) {
 }
 
 /**
- * Render a path on the specific coordinates
- */
+   Render a path on the specific coordinates
+*/
 void renderPath(byte x, byte y) {
   EsploraTFT.stroke(200, 200, 200);
   EsploraTFT.fill(200, 200, 200);
@@ -209,8 +206,8 @@ void renderPath(byte x, byte y) {
 }
 
 /**
- * Render a wall on the specific coordinates
- */
+   Render a wall on the specific coordinates
+*/
 void renderWall(byte x, byte y) {
   EsploraTFT.stroke(44, 44, 44);
   EsploraTFT.fill(125, 125, 125);
@@ -218,9 +215,9 @@ void renderWall(byte x, byte y) {
 }
 
 /**
- * Move the player one tile to the left, only in case
- * the movemet is possible (left tile is PATH, not WALL)
- */
+   Move the player one tile to the left, only in case
+   the movemet is possible (left tile is PATH, not WALL)
+*/
 void movePlayerLeft() {
   if (maze[((playerX - 1) * 31) + playerY] == PATH) { // is tile to the left a path?
     renderPath(playerX, playerY); // render a path where player was
@@ -229,9 +226,9 @@ void movePlayerLeft() {
 }
 
 /**
- * Move the player one tile to the right, only in case
- * the movement is possible (right tile is PATH, not WALL)
- */
+   Move the player one tile to the right, only in case
+   the movement is possible (right tile is PATH, not WALL)
+*/
 void movePlayerRight() {
   if (maze[((playerX + 1) * 31) + playerY] == PATH) { // is tile to the right a PATH?
     renderPath(playerX, playerY); // render a path where player was
@@ -240,9 +237,9 @@ void movePlayerRight() {
 }
 
 /**
- * Move the player one tile downwards, only in case
- * the movement is possible (down tile is PATH, not WALL)
- */
+   Move the player one tile downwards, only in case
+   the movement is possible (down tile is PATH, not WALL)
+*/
 void movePlayerDown() {
   if (maze[(playerX * 31) + (playerY - 1)] == PATH) { // is tile downwards a PATH?
     renderPath(playerX, playerY); // render a path where player was
@@ -251,9 +248,9 @@ void movePlayerDown() {
 }
 
 /**
- * Move the player one tile upwards, only in case
- * the movement is possible (upper tile is PATH, not WALL)
- */
+   Move the player one tile upwards, only in case
+   the movement is possible (upper tile is PATH, not WALL)
+*/
 void movePlayerUp() {
   if (maze[(playerX * 31) + (playerY + 1)] == PATH) { // is tile upwards a PATH?
     renderPath(playerX, playerY); // render a path where player was
@@ -262,19 +259,19 @@ void movePlayerUp() {
 }
 
 /**
- * Checks if player is in the exit
- */
+   Checks if player is in the exit
+*/
 boolean checkVictory() {
   return playerX == exitX && playerY == exitY;
 }
 
 /**
- * Display the victory screen.
- * 
- * The victory screen appears on top of the 
- * maze, and shows how many seconds it took
- * for the player to find the exit.
- */
+   Display the victory screen.
+
+   The victory screen appears on top of the
+   maze, and shows how many seconds it took
+   for the player to find the exit.
+*/
 void displayVictoryScreen() {
   screen = SCREEN_VICTORY;
 
@@ -306,18 +303,27 @@ void displayVictoryScreen() {
 }
 
 /**
- * Displays a splash screen.
- * It should be quick to render so that application
- * loads faster.
- */
+   Displays a splash screen.
+   It should be quick to render so that application
+   loads faster.
+*/
 void displaySplashScreen() {
-  
+  EsploraTFT.background(0, 0, 0);
+
+  EsploraTFT.setTextSize(3);
+  EsploraTFT.stroke(255, 255, 255);
+
+  EsploraTFT.text("Maze", 20, 15);
+  EsploraTFT.text("Runner", 40, 50);
+
+  EsploraTFT.setTextSize(1);
+  EsploraTFT.text(" - by Guilherme Mussi", 30, 100);
 }
 
 /**
- * Renders a selection tile for the selection 
- * screen on the specified row and column
- */
+   Renders a selection tile for the selection
+   screen on the specified row and column
+*/
 void renderMazeTile(int row, int col, int mazeNum) {
   int x = col * 38 + 9; // calculate X axis on the screen
   int y = row * 29 + 34; // calculate Y axis on the screen
@@ -343,15 +349,19 @@ void renderMazeTile(int row, int col, int mazeNum) {
 }
 
 /**
- * Display the selection page, for the player
- * to select a specific maze to play.
- * This only draws the current page. The player
- * can use the joystick to scroll through the pages.
- */
+   Display the selection page, for the player
+   to select a specific maze to play.
+   This only draws the current page. The player
+   can use the joystick to scroll through the pages.
+*/
 void displaySelectionPage() {
-  // TODO : place title
-  EsploraTFT.setTextSize(1);
   EsploraTFT.background(0, 0, 0);
+
+  EsploraTFT.setTextSize(2);
+  EsploraTFT.stroke(255, 255, 255);
+  EsploraTFT.text("Select Maze", 14, 8);
+
+  EsploraTFT.setTextSize(1);
   EsploraTFT.stroke(185, 122, 87);
   EsploraTFT.noFill();
   int mazeNum;
@@ -372,13 +382,13 @@ void displaySelectionPage() {
 }
 
 /**
- * Counts how many maze files there are on the SD card.
- * 
- * The maze files are located in /mazerun and named like:
- * /mazerun/maze-0.txt
- * /mazerun/maze-1.txt
- * ...
- */
+   Counts how many maze files there are on the SD card.
+
+   The maze files are located in /mazerun and named like:
+   /mazerun/maze-0.txt
+   /mazerun/maze-1.txt
+   ...
+*/
 void countMazes() {
   mazeCount = 0;
   File folder = SD.open("mazerun/"); // open folder
@@ -392,20 +402,92 @@ void countMazes() {
   }
 }
 
+/**
+  Select one maze tile to the top
+  if the tile selected is in the first row of the first page, jumps to the last page
+  If the tile selected is in the first row of the page, jumps to the previous page
+*/
 void selectTileUp() {
+  boolean firstRow = selectedRow == 0;
 
-}
+  byte lastSelectedRow = selectedRow;
+  byte lastSelectedCol = selectedCol;
+  int lastSelected = selected;
 
-void selectTileDown() {
+  if (page == 0 && firstRow) {
+    int rows = (mazeCount - 1) / 4;
 
+    selected += rows * 4;
+    page = mazeCount / 12;
+
+    selectedRow = rows - (page * 3);
+
+    if (selected >= mazeCount) {
+      selected -= 4;
+      selectedRow--;
+    }
+
+    displaySelectionPage();
+  } else if (firstRow) {
+    // jumps to first row of the next page
+    page--;
+    selectedRow = 2;
+    selected -= 4;
+
+    displaySelectionPage();
+  } else {
+    selectedRow--;
+    selected -= 4;
+
+    renderMazeTile(lastSelectedRow, lastSelectedCol, lastSelected);
+    renderMazeTile(selectedRow, selectedCol, selected);
+  }
 }
 
 /**
- * Select one maze tile to the right.
- * If it is the last tile on a row, jups to the next row.
- * If it is the last tile on a page, jumps to the next page.
- * If it is the last tile on the last page, jumps to the first tile
- */
+   Select one maze tile to the bottom
+   If the tile selected is in the last row of the page, jumps to the next page
+   If the tile selected is in the last row of the last page, jumps to first row of the last page
+*/
+void selectTileDown() {
+  int pages = mazeCount / 12;
+  boolean lastPage = page == pages;
+  boolean lastRow = selectedRow == 2;
+
+  byte lastSelectedRow = selectedRow;
+  byte lastSelectedCol = selectedCol;
+  int lastSelected = selected;
+
+  if (lastPage && selected + 4 >= mazeCount) {
+    // jumps to first row of the first page
+    selected = selectedCol;
+    selectedRow = 0;
+    page = 0;
+
+    displaySelectionPage();
+  } else if (lastRow) {
+    // jumps to first row of the next page
+    page++;
+    selectedRow = 0;
+    selected += 4;
+
+    displaySelectionPage();
+  } else {
+    // jumps to next row
+    selectedRow++;
+    selected += 4;
+
+    renderMazeTile(lastSelectedRow, lastSelectedCol, lastSelected);
+    renderMazeTile(selectedRow, selectedCol, selected);
+  }
+}
+
+/**
+   Select one maze tile to the right.
+   If it is the last tile on a row, jups to the next row.
+   If it is the last tile on a page, jumps to the next page.
+   If it is the last tile on the last page, jumps to the first tile
+*/
 void selectTileRight() {
   boolean lastCol = selectedCol == 3;
   boolean lastRow = selectedRow == 2;
@@ -422,14 +504,14 @@ void selectTileRight() {
     selectedCol = 0;
     selectedRow = 0;
 
-    displaySelectionPage(); 
+    displaySelectionPage();
   } else if (lastCol && lastRow) { // last tile of the current page?
     // jumps to next page
     selectedCol = 0;
     selectedRow = 0;
     page++;
 
-    displaySelectionPage(); 
+    displaySelectionPage();
   } else if (lastCol) { // last tile of this row?
     // jumps to next first tile of row
     selectedCol = 0;
@@ -445,11 +527,11 @@ void selectTileRight() {
 }
 
 /**
- * Select one maze tile to the left.
- * If it is the first tile on a row, jups to the previous row.
- * If it is the first tile on a page, jumps to the previous page.
- * If it is the first tile on the first page, jumps to the last tile of the last page
- */
+   Select one maze tile to the left.
+   If it is the first tile on a row, jups to the previous row.
+   If it is the first tile on a page, jumps to the previous page.
+   If it is the first tile on the first page, jumps to the last tile of the last page
+*/
 void selectTileLeft() {
   boolean firstCol = selectedCol == 0;
   boolean firstRow = selectedRow == 0;
@@ -492,11 +574,11 @@ void selectTileLeft() {
 }
 
 /**
- * Loads the maze selected in the selection screen.
- * First, the file is loaded from an SD card and into the memory.
- * Then, the maze and the player are rendered.
- * Finally, the timer that will be displayed in the Victory screen is started.
- */
+   Loads the maze selected in the selection screen.
+   First, the file is loaded from an SD card and into the memory.
+   Then, the maze and the player are rendered.
+   Finally, the timer that will be displayed in the Victory screen is started.
+*/
 void openSelectedTile() {
   loadMaze(selected); // load from SD card
   renderMaze(); // render the maze on the screen
@@ -507,14 +589,15 @@ void openSelectedTile() {
 }
 
 /**
- * Main loop of the application, that reads for the player inputs, 
- * and apply them, depending on the current screen the player is on.
- */
+   Main loop of the application, that reads for the player inputs,
+   and apply them, depending on the current screen the player is on.
+*/
 void loop() {
   int joyX = Esplora.readJoystickX(); // read value of joystick
   int joyY = Esplora.readJoystickY(); // read value of joystick
 
   if (screen == SCREEN_SELECTION) { // inputs for selection screen
+    boolean temp = true;
     if (Esplora.readButton(SWITCH_DOWN) == LOW) { // bottom button
       openSelectedTile();
     } else if (joyX > 256) { // joystick left
@@ -524,11 +607,23 @@ void loop() {
       selectTileRight();
       delay(TILE_MOVE_DELAY);
     } else if (joyY < -256) { // joystick down
-      selectTileDown();
-      delay(TILE_MOVE_DELAY);
-    } else if (joyY > 256) { // joystick up
       selectTileUp();
       delay(TILE_MOVE_DELAY);
+    } else if (joyY > 256) { // joystick down
+      selectTileDown();
+      delay(TILE_MOVE_DELAY);
+    } else {
+      temp = false;
+    }
+
+    if (temp) {
+      Serial.print(page);
+      Serial.print(" : ");
+      Serial.print(selectedRow);
+      Serial.print(" : ");
+      Serial.print(selectedCol);
+      Serial.print(" : ");
+      Serial.println(selected);
     }
   } else if (screen == SCREEN_MAZE) { // inputs for main screen
     boolean moved = true;
@@ -549,11 +644,11 @@ void loop() {
     }
 
     if (moved && checkVictory()) { // if the player moved, check if he won the game
-      displayVictoryScreen(); 
+      displayVictoryScreen();
     }
   } else if (screen == SCREEN_VICTORY) {
-      if (Esplora.readButton(SWITCH_DOWN) == LOW) { // bottom button
-        displaySelectionPage();  
-      } 
+    if (Esplora.readButton(SWITCH_DOWN) == LOW) { // bottom button
+      displaySelectionPage();
+    }
   }
 }
