@@ -2,7 +2,6 @@
    =======================================
       TODOS
 
-      replace X and Y by ROW and COL
       upload .zip to github and paste link here
       create github and arduino project hub page
     =====================================
@@ -96,12 +95,12 @@ byte selectedCol = 0; // remember the column of the selected maze
    of the current maze game
  **********************************/
 char maze[961]; // stores the entire maze
-byte entryX; // stores the coordinate X of the maze entry
-byte entryY; // stores the coordinate Y of the maze entry
-byte exitX; // stores the coordinate X of the maze exit
-byte exitY; // stores the coordinate Y of the maze exit
-byte playerX; // coordinate X of the player's current location
-byte playerY; // coordinate Y of the player's current location
+byte entryRow; // stores the coordinate X of the maze entry
+byte entryCol; // stores the coordinate Y of the maze entry
+byte exitRow; // stores the coordinate X of the maze exit
+byte exitCol; // stores the coordinate Y of the maze exit
+byte playerRow; // coordinate X of the player's current location
+byte playerCol; // coordinate Y of the player's current location
 long startTime; // stores when the current maze was started
 
 void setup() {
@@ -161,57 +160,57 @@ void loadMaze(byte num) {
 void renderMaze() {
   boolean entryFound = false;
 
-  for (int i = 0; i < 31; i++) {
-    for (int j = 0; j < 31; j++) {
-      if (maze[(i * 31) + j] == PATH) {
-        if (i == 0 || i == 30 || j == 0 || j == 30) {
+  for (int col = 0; col < 31; col++) {
+    for (int row = 0; row < 31; row++) {
+      if (maze[(col * 31) + row] == PATH) {
+        if (col == 0 || col == 30 || row == 0 || row == 30) {
           if (entryFound) { // second path on the edge is the exit
-            exitX = i;
-            exitY = j;
+            exitCol = col;
+            exitRow = row;
           } else { // first path on the edge is the entry
-            entryX = i;
-            entryY = j;
+            entryCol = col;
+            entryRow = row;
             entryFound = true;
           }
         }
 
-        renderPath(i, j);
+        renderPath(col, row);
       } else {
-        renderWall(i, j);
+        renderWall(col, row);
       }
     }
   }
 
   // place player in the entrance of the maze
-  playerX = entryX;
-  playerY = entryY;
+  playerCol = entryCol;
+  playerRow = entryRow;
 }
 
 /**
    Render the player on the specific coordinates
 */
-void renderPlayer(byte x, byte y) {
+void renderPlayer(byte col, byte row) {
   EsploraTFT.stroke(255, 0, 0);
   EsploraTFT.fill(255, 0, 0);
-  EsploraTFT.rect(x * 5, y * 4, 5, 4);
+  EsploraTFT.rect(col * 5, row * 4, 5, 4);
 }
 
 /**
    Render a path on the specific coordinates
 */
-void renderPath(byte x, byte y) {
+void renderPath(byte col, byte row) {
   EsploraTFT.stroke(200, 200, 200);
   EsploraTFT.fill(200, 200, 200);
-  EsploraTFT.rect(x * 5, y * 4, 5, 4);
+  EsploraTFT.rect(col * 5, row * 4, 5, 4);
 }
 
 /**
    Render a wall on the specific coordinates
 */
-void renderWall(byte x, byte y) {
+void renderWall(byte col, byte row) {
   EsploraTFT.stroke(44, 44, 44);
   EsploraTFT.fill(125, 125, 125);
-  EsploraTFT.rect(x * 5, y * 4, 5, 4);
+  EsploraTFT.rect(col * 5, row * 4, 5, 4);
 }
 
 /**
@@ -219,9 +218,9 @@ void renderWall(byte x, byte y) {
    the movemet is possible (left tile is PATH, not WALL)
 */
 void movePlayerLeft() {
-  if (maze[((playerX - 1) * 31) + playerY] == PATH) { // is tile to the left a path?
-    renderPath(playerX, playerY); // render a path where player was
-    renderPlayer(--playerX, playerY); // render player in the new location
+  if (maze[((playerCol - 1) * 31) + playerRow] == PATH) { // is tile to the left a path?
+    renderPath(playerCol, playerRow); // render a path where player was
+    renderPlayer(--playerCol, playerRow); // render player in the new location
   }
 }
 
@@ -230,9 +229,9 @@ void movePlayerLeft() {
    the movement is possible (right tile is PATH, not WALL)
 */
 void movePlayerRight() {
-  if (maze[((playerX + 1) * 31) + playerY] == PATH) { // is tile to the right a PATH?
-    renderPath(playerX, playerY); // render a path where player was
-    renderPlayer(++playerX, playerY); // render player in the new location
+  if (maze[((playerCol + 1) * 31) + playerRow] == PATH) { // is tile to the right a PATH?
+    renderPath(playerCol, playerRow); // render a path where player was
+    renderPlayer(++playerCol, playerRow); // render player in the new location
   }
 }
 
@@ -241,9 +240,9 @@ void movePlayerRight() {
    the movement is possible (down tile is PATH, not WALL)
 */
 void movePlayerDown() {
-  if (maze[(playerX * 31) + (playerY - 1)] == PATH) { // is tile downwards a PATH?
-    renderPath(playerX, playerY); // render a path where player was
-    renderPlayer(playerX, --playerY); // render player in the new location
+  if (maze[(playerCol * 31) + (playerRow - 1)] == PATH) { // is tile downwards a PATH?
+    renderPath(playerCol, playerRow); // render a path where player was
+    renderPlayer(playerCol, --playerRow); // render player in the new location
   }
 }
 
@@ -252,9 +251,9 @@ void movePlayerDown() {
    the movement is possible (upper tile is PATH, not WALL)
 */
 void movePlayerUp() {
-  if (maze[(playerX * 31) + (playerY + 1)] == PATH) { // is tile upwards a PATH?
-    renderPath(playerX, playerY); // render a path where player was
-    renderPlayer(playerX, ++playerY); // render player in the new location
+  if (maze[(playerCol * 31) + (playerRow + 1)] == PATH) { // is tile upwards a PATH?
+    renderPath(playerCol, playerRow); // render a path where player was
+    renderPlayer(playerCol, ++playerRow); // render player in the new location
   }
 }
 
@@ -262,7 +261,7 @@ void movePlayerUp() {
    Checks if player is in the exit
 */
 boolean checkVictory() {
-  return playerX == exitX && playerY == exitY;
+  return playerCol == exitCol && playerRow == exitRow;
 }
 
 /**
@@ -317,7 +316,7 @@ void displaySplashScreen() {
   EsploraTFT.text("Runner", 40, 50);
 
   EsploraTFT.setTextSize(1);
-  EsploraTFT.text(" - by Guilherme Mussi", 30, 100);
+  EsploraTFT.text(" - by Guilherme Mussi", 20, 90);
 }
 
 /**
@@ -582,7 +581,7 @@ void selectTileLeft() {
 void openSelectedTile() {
   loadMaze(selected); // load from SD card
   renderMaze(); // render the maze on the screen
-  renderPlayer(entryX, entryY); // render the player on the screen
+  renderPlayer(entryCol, entryRow); // render the player on the screen
   screen = SCREEN_MAZE; // transition screen to accept different inputs
 
   startTime = millis(); // start victory timer
@@ -597,9 +596,8 @@ void loop() {
   int joyY = Esplora.readJoystickY(); // read value of joystick
 
   if (screen == SCREEN_SELECTION) { // inputs for selection screen
-    boolean temp = true;
     if (Esplora.readButton(SWITCH_DOWN) == LOW) { // bottom button
-      openSelectedTile();
+      openSelectedTile(); // open tile selected
     } else if (joyX > 256) { // joystick left
       selectTileLeft();
       delay(TILE_MOVE_DELAY);
@@ -612,22 +610,12 @@ void loop() {
     } else if (joyY > 256) { // joystick down
       selectTileDown();
       delay(TILE_MOVE_DELAY);
-    } else {
-      temp = false;
-    }
-
-    if (temp) {
-      Serial.print(page);
-      Serial.print(" : ");
-      Serial.print(selectedRow);
-      Serial.print(" : ");
-      Serial.print(selectedCol);
-      Serial.print(" : ");
-      Serial.println(selected);
-    }
+    } 
   } else if (screen == SCREEN_MAZE) { // inputs for main screen
     boolean moved = true;
-    if (joyX > 256) { // joystick left
+    if (Esplora.readButton(SWITCH_RIGHT) == LOW) { // right buttom
+      displaySelectionPage();
+    } else if (joyX > 256) { // joystick left
       movePlayerLeft();
       delay(PLAYER_MOVE_DELAY);
     } else if (joyX < -256) { // joystick right
@@ -649,6 +637,8 @@ void loop() {
   } else if (screen == SCREEN_VICTORY) {
     if (Esplora.readButton(SWITCH_DOWN) == LOW) { // bottom button
       displaySelectionPage();
+
+      selectTileRight();
     }
   }
 }
