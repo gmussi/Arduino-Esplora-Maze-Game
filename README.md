@@ -8,11 +8,20 @@ This project is a Maze game for Arduino. I developed the code specifically for t
 The mazes are character sequences of 't's (path) and 'f's (wall), which form a grid. The maze size is 64x64, and is displayed in 4 quadrants of 32x32 tiles. When the player reaches the edge of the quadrant, the game renders the next quadrant.
 
 Maze file format:
+
+```
 <int>;<int>;<int>;<int>!<char[1024]!<char[1024]!<char[1024]!<char[1024]
+```
+
 Which translates to:
+
+```
 entryRow, entryCol, exitRow, exitCol, quadrant0, quadrant1, quadrant2, quadrant3
-  
+```
+
 The quadrants are displayed as:
+
+```
 0000 ... 1111
 0000 ... 1111
 0000 ... 1111
@@ -20,6 +29,7 @@ The quadrants are displayed as:
 2222 ... 3333
 2222 ... 3333
 2222 ... 3333
+```
 
 The edge of the 64x64 maze should be made of walls ('f') except for both entrance and exit.
 There should be two, and only two path blocks on the edge of the maze, which will be the Entry and Exit of the maze.
