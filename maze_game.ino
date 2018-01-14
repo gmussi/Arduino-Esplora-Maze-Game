@@ -1,20 +1,15 @@
 /**********************************************************************************
-   =======================================
-      TODOS
-
-      - update documentation
-      - create arduino project hub page
-    =====================================
-
    This is a Maze Game I developed as a learning project for the Arduino
    platform. This code is developed specifically for the Arduino Esplora with LCD,
    but could be easily adapted to any other Arduino, by replacing the calls to the
    "Esplora" and "EsploraTFT" libraries.
-   The maze are stored and loaded from an SD card and consist of a 961 char sequence
-   of 'f' (wall) and 't' (path) which form a 31x31 maze.. When the player selects a
-   map and reaches its end, a victory screen is shown with the time taken by the player
-   to complete the map.
-
+   The maze are stored and loaded from an SD card and consist of a 1024 char sequence
+   of 'f' (wall) and 't' (path) which form a 64x64 maze. At any given time, only a 32x32 
+   part of the maze is shown. When the player reaches the edge of the screen, the screen scrolls
+   to the next / previous part of the maze. When the player reaches its end, a victory screen is 
+   shown with the time taken by the player.
+   By pressing the top button, an overview with the entire maze is shown.
+   
    Author: Guilherme Mussi <https://github.com/gmussi>
 
    Github Project Page: https://github.com/gmussi/Arduino-Esplora-Maze-Game
@@ -76,6 +71,7 @@ const byte SCREEN_VICTORY = 3; // when the user successfully finishes a maze
 
 int mazeCount; // number of mazes found in SD card
 byte screen; // stores the current screen
+boolean previewOpen = false; // stores state of preview window
 
 /***********************************
    Variables used during maze
@@ -92,8 +88,6 @@ byte selectedCol = 0; // remember the column of the selected maze
    of the current maze game
  **********************************/
 char maze[1024]; // stores the entire maze
-byte entryRow; // stores the coordinate X of the maze entry
-byte entryCol; // stores the coordinate Y of the maze entry
 byte exitRow; // stores the coordinate X of the maze exit
 byte exitCol; // stores the coordinate Y of the maze exit
 byte exitQuadrant; // stores the quadrant of the maze exit
@@ -103,15 +97,8 @@ byte playerCol; // coordinate Y of the player's current location
 long startTime; // stores when the current maze was started
 
 void setup() {
-  Serial.begin(9600);
-
   // initialize the dispay
   EsploraTFT.begin();
-
-  // display splash screen while things load
-  //displaySplashScreen();
-
-
 
   // initialize SD card reader
   if (!SD.begin(8)) {
@@ -123,8 +110,6 @@ void setup() {
 
   // display select maze screen
   displaySelectionPage();
-
-  //openSelectedTile();
 }
 
 /**
@@ -147,14 +132,10 @@ void loadMaze() {
 
   File mazeFile = SD.open(filename);
 
-  quadrant = mazeFile.parseInt();
-
-  entryRow = mazeFile.parseInt();
-
-  entryCol = mazeFile.parseInt();
+  playerRow = mazeFile.parseInt();
+  playerCol = mazeFile.parseInt();
 
   exitRow = mazeFile.parseInt();
-
   exitCol = mazeFile.parseInt();
 
   if (exitRow < 32 && exitCol < 32) {
@@ -171,17 +152,18 @@ void loadMaze() {
     exitCol -= 31;
   }
 
-  Serial.print(exitQuadrant);
-  Serial.print(':');
-  Serial.print(exitRow);
-  Serial.print(':');
-  Serial.println(exitCol);
-
-  if (entryCol >= 32) {
-    entryCol -= 31;
-  }
-  if (entryRow >= 32) {
-    entryRow -= 31;
+  if (playerRow < 32 && playerCol < 32) {
+    quadrant = 0;
+  } else if (playerRow < 32 && playerCol >= 32) {
+    quadrant = 1;
+    playerCol -= 31;
+  } else if (playerRow >= 32 && playerCol < 32) {
+    quadrant = 2;
+    playerRow -= 31;
+  } else {
+    quadrant = 3;
+    playerRow -= 31;
+    playerCol -= 31;
   }
 
   // do the same as loadQuadrant here, for performance improvement
@@ -195,13 +177,165 @@ void loadMaze() {
 
   // after file is read, free resources
   mazeFile.close();
-
-  // place player in the entrance of the maze
-  playerCol = entryCol;
-  playerRow = entryRow;
 }
 
+void previewMaze2() {
+  previewOpen = true;
+
+   // draws frame
+  EsploraTFT.stroke(185, 86, 53);
+  EsploraTFT.noFill();
+  EsploraTFT.rect(46, 30 , 67, 67);
+
+  EsploraTFT.stroke(185, 122, 87);
+  EsploraTFT.rect(47, 31 , 65, 65);
+
+  // open maze file from SD card
+  String filename = "MAZERUN/BIGM-" + String(selected);
+  filename += ".TXT";
+
+  File mazeFile = SD.open(filename);
+
+  // draw first quadrant
+  mazeFile.find('!');
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(48 + col, 32 + row);
+    }
+  }
+  mazeFile.read();
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(79 + col, 32 + row);
+    }
+  }
+  mazeFile.read();
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(48 + col, 63 + row);
+    }
+  }
+  mazeFile.read();
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(79 + col, 63 + row);
+    }
+  }
+
+   mazeFile.close();
+}
+
+/**
+   Display a small window with the entirety of the maze, 
+   to serve as a heping hand for the player.
+*/
+void previewMaze() {
+  previewOpen = true;
+
+  // draws frame around the maze
+  EsploraTFT.stroke(185, 86, 53);
+  EsploraTFT.noFill();
+  EsploraTFT.rect(46, 30 , 67, 67);
+
+  EsploraTFT.stroke(185, 122, 87);
+  EsploraTFT.rect(47, 31 , 65, 65);
+
+  // open maze file from SD card
+  String filename = "MAZERUN/BIGM-" + String(selected);
+  filename += ".TXT";
+
+  File mazeFile = SD.open(filename);
+
+  // draw first quadrant
+  mazeFile.find('!');
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(48 + col, 32 + row);
+    }
+  }
+
+  // draw second quadrant
+  mazeFile.read();
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(79 + col, 32 + row);
+    }
+  }
+
+  // draw third quadrant
+  mazeFile.read();
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(48 + col, 63 + row);
+    }
+  }
+  // draw fourth quadrant
+  mazeFile.read();
+  for (int row = 0; row < 32; row++) {
+    for (int col = 0; col < 32; col++) {
+      char c = (char) mazeFile.read();
+      if (c == PATH) {
+        EsploraTFT.stroke(200, 200, 200);
+      } else {
+        EsploraTFT.stroke(44, 44, 44);
+      }
+      EsploraTFT.point(79 + col, 63 + row);
+    }
+  }
+
+  // close file to free resources
+  mazeFile.close();
+}
+
+/**
+ * Loads a specific quadrant from the SD Card.
+ * This action is done every time the player switches 
+ * from one quadrant to the next.
+ */
 void loadQuadrant() {
+  // open maze file
   String filename = "MAZERUN/BIGM-" + String(selected);
   filename += ".TXT";
 
@@ -216,6 +350,7 @@ void loadQuadrant() {
     maze[i] = (char) mazeFile.read();
   }
 
+  // free resources
   mazeFile.close();
 }
 
@@ -234,15 +369,17 @@ void renderMaze() {
       }
     }
   }
+
+  previewOpen = false;
 }
 
 /**
    Render the player on the specific coordinates
 */
-void renderPlayer(byte col, byte row) {
+void renderPlayer() {
   EsploraTFT.stroke(255, 0, 0);
   EsploraTFT.fill(255, 0, 0);
-  EsploraTFT.rect(col * 5, row * 4, 5, 4);
+  EsploraTFT.rect(playerCol * 5, playerRow * 4, 5, 4);
 }
 
 /**
@@ -270,7 +407,8 @@ void renderWall(byte col, byte row) {
 void movePlayerLeft() {
   if (maze[(playerRow * 32) + (playerCol - 1)] == PATH) { // is tile to the left a path?
     renderPath(playerCol, playerRow); // render a path where player was
-    renderPlayer(--playerCol, playerRow); // render player in the new location
+    playerCol--;
+    renderPlayer(); // render player in the new location
   }
 }
 
@@ -281,7 +419,8 @@ void movePlayerLeft() {
 void movePlayerRight() {
   if (maze[(playerRow * 32) + (playerCol + 1)] == PATH) { // is tile to the right a PATH?
     renderPath(playerCol, playerRow); // render a path where player was
-    renderPlayer(++playerCol, playerRow); // render player in the new location
+    playerCol++;
+    renderPlayer(); // render player in the new location
   }
 }
 
@@ -292,7 +431,8 @@ void movePlayerRight() {
 void movePlayerDown() {
   if (maze[((playerRow + 1) * 32) + playerCol] == PATH) { // is tile downwards a PATH?
     renderPath(playerCol, playerRow); // render a path where player was
-    renderPlayer(playerCol, ++playerRow); // render player in the new location
+    playerRow++;
+    renderPlayer(); // render player in the new location
   }
 }
 
@@ -303,7 +443,8 @@ void movePlayerDown() {
 void movePlayerUp() {
   if (maze[((playerRow - 1) * 32) + playerCol] == PATH) { // is tile upwards a PATH?
     renderPath(playerCol, playerRow); // render a path where player was
-    renderPlayer(playerCol, --playerRow); // render player in the new location
+    playerRow--;
+    renderPlayer(); // render player in the new location
   }
 }
 
@@ -351,25 +492,6 @@ void displayVictoryScreen() {
   EsploraTFT.text(arr, 18, 75);
 }
 
-/**
-   Displays a splash screen.
-   It should be quick to render so that application
-   loads faster.
-*/
-/*
-  void displaySplashScreen() {
-  EsploraTFT.background(0, 0, 0);
-
-  EsploraTFT.setTextSize(3);
-  EsploraTFT.stroke(255, 255, 255);
-
-  EsploraTFT.text("Maze", 20, 15);
-  EsploraTFT.text("Runner", 40, 50);
-
-  EsploraTFT.setTextSize(1);
-  EsploraTFT.text(" - by Guilherme Mussi", 20, 90);
-  }
-*/
 /**
    Renders a selection tile for the selection
    screen on the specified row and column
@@ -429,6 +551,7 @@ void displaySelectionPage() {
   }
 
   screen = SCREEN_SELECTION;
+  previewOpen = false;
 }
 
 /**
@@ -641,7 +764,7 @@ void selectTileLeft() {
 void openSelectedTile() {
   loadMaze(); // load from SD card
   renderMaze(); // render the maze on the screen
-  renderPlayer(entryCol, entryRow); // render the player on the screen
+  renderPlayer(); // render the player on the screen
   screen = SCREEN_MAZE; // transition screen to accept different inputs
 
   startTime = millis(); // start victory timer
@@ -658,6 +781,12 @@ void loop() {
   if (screen == SCREEN_SELECTION) { // inputs for selection screen
     if (Esplora.readButton(SWITCH_DOWN) == LOW) { // bottom button
       openSelectedTile(); // open tile selected
+    } else if (Esplora.readButton(SWITCH_UP) == LOW) {
+      if (previewOpen) {
+        displaySelectionPage();
+      } else {
+        previewMaze();
+      }
     } else if (joyX > 256) { // joystick left
       selectTileLeft();
       delay(TILE_MOVE_DELAY);
@@ -672,12 +801,18 @@ void loop() {
       delay(TILE_MOVE_DELAY);
     }
   } else if (screen == SCREEN_MAZE) { // inputs for main screen
-    boolean moved = true;
     byte lastCol = playerCol;
     byte lastRow = playerRow;
 
     if (Esplora.readButton(SWITCH_RIGHT) == LOW) { // right buttom
       displaySelectionPage();
+    } else if (Esplora.readButton(SWITCH_UP) == LOW) {
+      if (previewOpen) {
+        renderMaze();
+        renderPlayer();
+      } else {
+        previewMaze2();
+      }
     } else if (joyX > 256) { // joystick left
       movePlayerLeft();
       delay(PLAYER_MOVE_DELAY);
@@ -691,50 +826,45 @@ void loop() {
       movePlayerDown();
       delay(PLAYER_MOVE_DELAY);
     } else {
-      moved = false;
+      return;
     }
 
-    if (moved) { // in case player moved ...
-      if (checkVictory()) { // check if he won the game
-        displayVictoryScreen(); // and display victory screen
-      }
-
-      if (playerCol != entryCol || playerRow != entryRow) { // if player is not in the entrance
-        boolean changed = true;
-        if (playerCol == 31 && quadrant == 0 && (playerCol != lastCol || joyX < -256)) { // player is on the right edge of quadrant 0
-          quadrant = 1; // show quadrant 1
-          playerCol = 0;
-        } else if (playerRow == 31 && quadrant == 0 && (playerRow != lastRow || joyY > 256)) { // player is on bottom edge of quadrant 0
-          quadrant = 2;
-          playerRow = 0;
-        } else if (playerCol == 0 && quadrant == 1 && (playerCol != lastCol || joyX > 256)) {  // player is on left edge of quadrant 1
-          quadrant = 0; // show quadrant 0
-          playerCol = 31;
-        } else if (playerRow == 31 && quadrant == 1 && (playerRow != lastRow || joyY > 256)) { // player is on bottom edge of quadrant 1
-          quadrant = 3;
-          playerRow = 0;
-        } else if (playerRow == 0 && quadrant == 2 && (playerRow != lastRow || joyY < -256)) {
-          quadrant = 0;
-          playerRow = 31;
-        } else if (playerCol == 31 && quadrant == 2 && (playerCol != lastCol || joyX < -256)) {
-          quadrant = 3;
-          playerCol = 0;
-        } else if (playerCol == 0 && quadrant == 3 && (playerCol != lastCol || joyX > 256)) {
-          quadrant = 2;
-          playerCol = 31;
-        } else if (playerRow == 0 && quadrant == 3 && (playerRow != lastRow || joyY < -256)) {
-          quadrant = 1;
-          playerRow = 31;
-        } else {
-          changed = false;
-        }
-        if (changed) {
-          loadQuadrant();
-          renderMaze();
-          renderPlayer(playerCol, playerRow);
-        }
-      }
+    if (checkVictory()) { // check if he won the game
+      displayVictoryScreen(); // and display victory screen
     }
+
+    // TODO code below could probably use a refactor to be more readable
+    if (playerCol == 31 && quadrant == 0 && (playerCol != lastCol || joyX < -256)) { // player is on the right edge of quadrant 0
+      quadrant = 1; // show quadrant 1
+      playerCol = 0;
+    } else if (playerRow == 31 && quadrant == 0 && (playerRow != lastRow || joyY > 256)) { // player is on bottom edge of quadrant 0
+      quadrant = 2;
+      playerRow = 0;
+    } else if (playerCol == 0 && quadrant == 1 && (playerCol != lastCol || joyX > 256)) {  // player is on left edge of quadrant 1
+      quadrant = 0; // show quadrant 0
+      playerCol = 31;
+    } else if (playerRow == 31 && quadrant == 1 && (playerRow != lastRow || joyY > 256)) { // player is on bottom edge of quadrant 1
+      quadrant = 3;
+      playerRow = 0;
+    } else if (playerRow == 0 && quadrant == 2 && (playerRow != lastRow || joyY < -256)) { // player is on top edge of quadrant 2
+      quadrant = 0;
+      playerRow = 31;
+    } else if (playerCol == 31 && quadrant == 2 && (playerCol != lastCol || joyX < -256)) { // player is on right edge of quadran 2
+      quadrant = 3;
+      playerCol = 0;
+    } else if (playerCol == 0 && quadrant == 3 && (playerCol != lastCol || joyX > 256)) { // player is on left edge of quadrant 3
+      quadrant = 2;
+      playerCol = 31;
+    } else if (playerRow == 0 && quadrant == 3 && (playerRow != lastRow || joyY < -256)) { // player is on top edge of quadrant 3
+      quadrant = 1;
+      playerRow = 31;
+    } else { // don't do anything
+      return;
+    }
+
+    loadQuadrant();
+    renderMaze();
+    renderPlayer();
 
   } else if (screen == SCREEN_VICTORY) {
     if (Esplora.readButton(SWITCH_DOWN) == LOW) { // bottom button
