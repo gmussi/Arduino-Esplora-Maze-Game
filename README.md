@@ -1,6 +1,6 @@
 # Arduino Esplora Maze Runner Game
 
-[Arduino Project Hub Page]()
+[Arduino Project Hub Page](https://create.arduino.cc/projecthub/gmussi/challenging-maze-game-d1b363)
 
 ## Introduction
 
