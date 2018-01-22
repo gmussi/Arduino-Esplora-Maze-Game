@@ -45,14 +45,14 @@ The only hardware used in this project were:
 
 ## Installation
 
-1. Unzip one of the maze pack files in the root of a micro SD card
+1. Unzip the maze file pack in the root of the micro SD card
 2. Compile the Sketch with the Arduino IDE and upload it to your Arduino Esplora.
 
 ## Usage
 
 ### Maze selection
 
-[Maze selection screen]()
+<img width="350" alt="Maze Selection Screen" src="img/img_sel.PNG"><img width="350" alt="Preview Screen" src="img/img_sel_preview.PNG">
 
 * **Joystick** - Browse / Select a maze.
 * **Top button** - Preview the maze.
@@ -60,7 +60,7 @@ The only hardware used in this project were:
 
 ### Maze game
 
-[Maze game screen]()
+<img width="350" alt="Maze Game Screen" src="img/img_maze1.PNG"><img width="350" alt="Maze Game Screen" src="img/img_maze2.PNG">
 
 * **Joystick** - Move through the maze.
 * **Top button** - Preview the whole maze.
@@ -68,7 +68,7 @@ The only hardware used in this project were:
 
 ### Victory screen
 
-[Victory screen]()
+<img width="350" alt="Victory Screen" src="img/img_victory.PNG">
 
 * **Bottom button** - Dismiss and go back to the maze selection screen.
 
