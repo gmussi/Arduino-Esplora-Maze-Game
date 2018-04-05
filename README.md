@@ -1,4 +1,4 @@
-# Arduino Esplora Maze Runner Game
+# Arduino Esplora Maze Runner Game [![Build Status](https://travis-ci.org/gmussi/Arduino-Esplora-Maze-Game.svg?branch=master)](https://travis-ci.org/gmussi/Arduino-Esplora-Maze-Game)
 
 [Arduino Project Hub Page](https://create.arduino.cc/projecthub/gmussi/challenging-maze-game-d1b363)
 
